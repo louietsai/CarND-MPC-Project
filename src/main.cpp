@@ -91,13 +91,42 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
-
+	  std::cout << "j[1] : " <<j[1]<<std::endl;
+#if 0
+	  std::cout << "ptsx : " << ptsx << std::endl;
+	  std::cout << "ptsx : " << ptsx << std::endl;
+	  std::cout << "px : " << px << std::endl;
+	  std::cout << "py : " << py << std::endl;
+	  std::cout << "v : " << v << std::endl;
+#endif
           /*
           * TODO: Calculate steering angle and throttle using MPC.
           *
           * Both are in between [-1, 1].
           *
           */
+
+  	  Eigen::VectorXd xvals(6);
+          Eigen::VectorXd yvals(6);
+          xvals << ptsx[0], ptsx[1], ptsx[2], ptsx[3], ptsx[4], ptsx[5];
+          yvals << ptsy[0], ptsy[1], ptsy[2], ptsy[3], ptsy[4], ptsy[5];
+	  //double* ptr = &v[0];
+	  //Eigen::Map<Eigen::VectorXd> xvals(&ptsx[0], 6);
+         
+	  // The polynomial is fitted to a straight line so a polynomial with
+          // order 1 is sufficient.
+          auto coeffs = polyfit(xvals, yvals, 1);
+	  // The cross track error is calculated by evaluating at polynomial at x, f(x)
+	  // and subtracting y.
+	  double cte = polyeval(coeffs, px) - py;
+	  // Due to the sign starting at 0, the orientation error is -f'(x).
+	  // derivative of coeffs[0] + coeffs[1] * x -> coeffs[1]
+	  double epsi = psi - atan(coeffs[1]);
+
+	  Eigen::VectorXd state(6);
+	  state << px, py, psi, v, cte, epsi;
+	  auto vars = mpc.Solve(state, coeffs);
+	
           double steer_value;
           double throttle_value;
 
@@ -107,7 +136,7 @@ int main() {
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
-          //Display the MPC predicted trajectory 
+          //Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
@@ -126,7 +155,6 @@ int main() {
 
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
-
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
