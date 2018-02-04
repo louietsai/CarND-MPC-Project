@@ -5,8 +5,6 @@
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
 
-
-
 using CppAD::AD;
 
 // We set the number of timesteps to 25
@@ -146,7 +144,8 @@ class FG_eval {
 MPC::MPC() {}
 MPC::~MPC() {}
 
-vector<double> MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
+//vector<double> MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
+Solution MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
   bool ok = true;
   size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
@@ -260,12 +259,25 @@ vector<double> MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
   // Check some of the solution values
   ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
 
-  // Cost
+  //cout << endl << " solution : " << solution<< endl;
+
+  Solution sol;
+  for (auto i = 0; i < N-1 ; i++){
+  	//cout << i << ": " << "solution.x[x_start+i]: " << solution.x[x_start+i] << "solution.x[y_start+i]: " << solution.x[y_start+i] << endl;
+  	sol.X.push_back(solution.x[x_start+i]);
+  	sol.Y.push_back(solution.x[y_start+i]);
+  	sol.Delta.push_back(solution.x[delta_start+i]);
+  	sol.A.push_back(solution.x[a_start+i]);
+  }
+
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
+
+  return sol;
+  /*
   return {solution.x[x_start + 1],   solution.x[y_start + 1],
           solution.x[psi_start + 1], solution.x[v_start + 1],
           solution.x[cte_start + 1], solution.x[epsi_start + 1],
           solution.x[delta_start],   solution.x[a_start]};
+          */
 }
-
