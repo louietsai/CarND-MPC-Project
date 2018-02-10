@@ -134,8 +134,10 @@ int main() {
 	  // derivative of coeffs[0] + coeffs[1] * x -> coeffs[1]
 	  double epsi = psi - atan(coeffs[1]);
 
+          // state in vehicle coordinates: x,y and orientation are always zero
 	  Eigen::VectorXd state(6);
-	  state << px, py, psi, v, cte, epsi;
+	  //state << px, py, psi, v, cte, epsi;
+	  state << 0, 0, 0, v, cte, epsi;
 	  Solution vars = mpc.Solve(state, coeffs);
 	  //auto vars = mpc.Solve(state, coeffs);
           std::cout << "after mpc solve"<< std::endl;
@@ -148,7 +150,13 @@ int main() {
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
+          // mathematically positive angles are negative in the simulator,
+          // therefore we have to feed the negative steer_value.
+          // WARNING: the current simulator expects angles as a
+          //    fraction of the max angle, here 25 degrees, not radians!
+          //    It must be in the range [-1,1].
+          // 25 degrees in radians are 0.436332.
+          msgJson["steering_angle"] = -1*steer_value/0.436332;
           msgJson["throttle"] = throttle_value;
 
           std::cout << "before mpc set"<< std::endl;
@@ -188,12 +196,16 @@ int main() {
           }
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
+
           std::cout << std::endl;
           std::cout << "mpc x : "<< msgJson["mpc_x"].dump()<< std::endl;
           std::cout << "mpc y : "<< msgJson["mpc_x"].dump()<< std::endl;
           std::cout << "next x : "<< msgJson["next_x"].dump()<< std::endl;
           std::cout << "next y : "<< msgJson["next_y"].dump()<< std::endl;
+          std::cout << "steering_angle : "<< msgJson["steering_angle"].dump()<< std::endl; //steering angle has problem
+          std::cout << "throttle : "<< msgJson["throttle"].dump()<< std::endl;
           std::cout << std::endl;
+
           std::cout << "after next vals set"<< std::endl;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;

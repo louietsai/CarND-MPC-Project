@@ -177,6 +177,7 @@ Solution MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
   vars[cte_start] = cte;
   vars[epsi_start] = epsi;
 
+  //cout << "  x: " << x << "  y: " << y << endl;
   // Lower and upper limits for x
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
@@ -262,8 +263,10 @@ Solution MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
   //cout << endl << " solution : " << solution<< endl;
 
   Solution sol;
+
+  cout << "  N: " << N << "  x_start: " << x_start << endl;
   for (auto i = 0; i < N-1 ; i++){
-  	//cout << i << ": " << "solution.x[x_start+i]: " << solution.x[x_start+i] << "solution.x[y_start+i]: " << solution.x[y_start+i] << endl;
+  	cout << i << ": " << "  solution.x[x_start+i]: " << solution.x[x_start+i] << "  solution.x[y_start+i]: " << solution.x[y_start+i] << endl;
   	sol.X.push_back(solution.x[x_start+i]);
   	sol.Y.push_back(solution.x[y_start+i]);
   	sol.Delta.push_back(solution.x[delta_start+i]);
