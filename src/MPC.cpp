@@ -10,7 +10,7 @@ using CppAD::AD;
 // We set the number of timesteps to 25
 // and the timestep evaluation frequency or evaluation
 // period to 0.05.
-size_t N = 25;
+size_t N = 15;
 double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
@@ -27,7 +27,7 @@ const double Lf = 2.67;
 
 // NOTE: feel free to play around with this
 // or do something completely different
-double ref_v = 40;
+double ref_v = 50;//40; //TUNE 40-85
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -65,13 +65,13 @@ class FG_eval {
     // Minimize the use of actuators.
     for (int t = 0; t < N - 1; t++) {
       fg[0] += CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t], 2);
+      fg[0] += 10*CppAD::pow(vars[a_start + t], 2); // TUNE 10*
     }
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++) {
-      fg[0] += 500*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += 500*CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] += 600*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2); //TUNE 500-600
+      fg[0] += 1*CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2); //TUNE 500-600
     }
 
     //
@@ -115,6 +115,9 @@ class FG_eval {
 
       AD<double> f0 = coeffs[0] + coeffs[1] * x0;
       AD<double> psides0 = CppAD::atan(coeffs[1]);
+      //TUNE
+      //AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2]*x0*x0 + coeffs[3]*x0*x0*x0;
+      //AD<double> psides0 = CppAD::atan(coeffs[1]+2*coeffs[2]*x0 + 3 * coeffs[3]*x0*x0);
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -156,7 +159,7 @@ Solution MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
   double v = x0[3];
   double cte = x0[4];
   double epsi = x0[5];
-
+  cout << "     MPC Solve  v: " << v << "  ,cte: " << cte << "  ,epsi:" << epsi << endl;
   // number of independent variables
   // N timesteps == N - 1 actuations
   size_t n_vars = N * 6 + (N - 1) * 2;
@@ -247,7 +250,7 @@ Solution MPC::Solve(Eigen::VectorXd x0, Eigen::VectorXd coeffs) {
   options += "Sparse  true        reverse\n";
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
-  options += "Numeric max_cpu_time          0.5\n";
+  options += "Numeric max_cpu_time          0.5\n";//TUNE 0.5 - 0.005
 
   // place to return solution
   CppAD::ipopt::solve_result<Dvector> solution;

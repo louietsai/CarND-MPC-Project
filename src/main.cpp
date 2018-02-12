@@ -124,12 +124,24 @@ int main() {
             yvals[i] = x * sin(0-psi) + y * cos(0-psi);
 
           }
+
+          cout << endl ;
+          cout << " Px : " << px << endl;
+          cout << " Py : " << py << endl;
+          cout << " Ptsx : " << xvals << endl;
+          cout << " Ptsy : " << yvals << endl;
+	  cout << " v : " << v << endl;
+          cout << endl;
+
 	  // The polynomial is fitted to a straight line so a polynomial with
           // order 1 is sufficient.
           auto coeffs = polyfit(xvals, yvals, 1);
 	  // The cross track error is calculated by evaluating at polynomial at x, f(x)
 	  // and subtracting y.
-	  double cte = polyeval(coeffs, px) - py;
+          //double cte = polyeval(coeffs, px) - py;
+          // In vehicle coordinates the cross-track error error cte is
+          // the intercept at x = 0
+	  double cte = polyeval(coeffs, 0) - 0;
 	  // Due to the sign starting at 0, the orientation error is -f'(x).
 	  // derivative of coeffs[0] + coeffs[1] * x -> coeffs[1]
 	  double epsi = psi - atan(coeffs[1]);
@@ -202,7 +214,7 @@ int main() {
           std::cout << "mpc y : "<< msgJson["mpc_x"].dump()<< std::endl;
           std::cout << "next x : "<< msgJson["next_x"].dump()<< std::endl;
           std::cout << "next y : "<< msgJson["next_y"].dump()<< std::endl;
-          std::cout << "steering_angle : "<< msgJson["steering_angle"].dump()<< std::endl; //steering angle has problem
+          std::cout << "steering_angle : "<< msgJson["steering_angle"].dump()<< std::endl;
           std::cout << "throttle : "<< msgJson["throttle"].dump()<< std::endl;
           std::cout << std::endl;
 
