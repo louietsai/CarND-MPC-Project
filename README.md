@@ -38,6 +38,7 @@ Note that the initial position of the car and heading direction are always zero 
 ### Model Predictive Control with Latency
 An additional complication of this project consists in taking delayed actuations into account. After the solution of the NMPC problem a delay of 100ms is introduced before the actuations are sent back to the simulator.
 I still keep the delay of 100ms, but the controller would be more responsive if I make the delay as 50ms. however, the car will tend to drive out of lane if I use 200ms as the delay. more delay may introduce bigger steering angle and make the car drive out of lane in the end.
+I predict the state of the vehicle 100 ms in the future before passing the state vector to the solver. the implementation is from line 166 - 177 in main.cpp.
 
 ---
 
