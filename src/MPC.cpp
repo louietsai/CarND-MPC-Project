@@ -7,10 +7,10 @@
 
 using CppAD::AD;
 
-// We set the number of timesteps to 25
+// We set the number of timesteps to 10
 // and the timestep evaluation frequency or evaluation
 // period to 0.05.
-size_t N = 15;
+size_t N = 10;
 double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.

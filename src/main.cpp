@@ -135,7 +135,8 @@ int main() {
 
 	  // The polynomial is fitted to a straight line so a polynomial with
           // order 1 is sufficient.
-          auto coeffs = polyfit(xvals, yvals, 1);
+          // however, use order 3 to have more fit line.
+          auto coeffs = polyfit(xvals, yvals, 3);
 	  // The cross track error is calculated by evaluating at polynomial at x, f(x)
 	  // and subtracting y.
           //double cte = polyeval(coeffs, px) - py;
@@ -156,8 +157,9 @@ int main() {
 
           double steer_value;
           double throttle_value;
-          steer_value = vars.Delta.at(2);//vars[6];
-          throttle_value = vars.A.at(2);
+          int actuate_point = 2 ;
+          steer_value = vars.Delta.at(actuate_point);//vars[6];
+          throttle_value = vars.A.at(actuate_point);
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
