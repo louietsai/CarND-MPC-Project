@@ -2,6 +2,44 @@
 Self-Driving Car Engineer Nanodegree Program
 
 ---
+### The Vehicle Model
+The vehicle model used in this project is a kinematic bicycle model. It neglects all dynamical effects such as inertia, friction and torque.  the following equations ared used in the model
+
+x,y : position of the car
+psi : the heading direction
+v : its velocity 
+cte : the cross-track error 
+epsi : the orientation error. 
+Lf : is the distance between the center of mass of the vehicle and the front wheels and affects the maneuverability.  
+
+      x[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+      y[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+      psi[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+      v[t+1] = v[t] + a[t] * dt
+      cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+      epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
+
+### Timestep Length and Elapsed Duration (N & dt)
+The time T=N dt defines the prediction horizon. Short prediction horizons lead to more responsive controlers, but are less accurate and can suffer from instabilities when chosen too short. Long prediction horizons generally lead to smoother controls. For a given prediction horizon shorter time steps dt imply more accurate controls but also require a larger NMPC problem to be solved, thus increasing latency.
+
+N : 15 , dt : 0.05. I choose 0.05 as dt because I would like to have more responsive controller. I found that N > 15 may make my car flips over when the speed is >50.
+
+### Polynomial Fitting and MPC Preprocessing
+All computations are performed in the vehicle coordinate system. The coordinates of waypoints in vehicle coordinates are obtained by first shifting the origin to the current poistion of the vehicle and a subsequet 2D rotation to align the x-axis with the heading direction. Therby the waypoints are obtained in the frame of the vehicle. A third order polynomial is then fitted to the waypoints. The transformation between coordinate systems is implemented as below functions
+            double x = xvals[i]-px;
+            double y = yvals[i]-py;
+            xvals[i] = x * cos(0-psi) - y * sin(0-psi);
+            yvals[i] = x * sin(0-psi) + y * cos(0-psi);
+Note that the initial position of the car and heading direction are always zero in this frame. Thus the state of the car in the vehicle cordinate system is
+
+          state << 0, 0, 0, v, cte, epsi;
+
+
+### Model Predictive Control with Latency
+An additional complication of this project consists in taking delayed actuations into account. After the solution of the NMPC problem a delay of 100ms is introduced before the actuations are sent back to the simulator.
+I still keep the delay of 100ms, but the controller would be more responsive if I make the delay as 50ms. however, the car will tend to drive out of lane if I use 200ms as the delay. more delay may introduce bigger steering angle and make the car drive out of lane in the end.
+
+---
 
 ## Dependencies
 
