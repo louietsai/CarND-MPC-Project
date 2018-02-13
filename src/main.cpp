@@ -90,7 +90,9 @@ int main() {
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
+	  double delta= j[1]["steering_angle"];
           double v = j[1]["speed"];
+	  double a = j[1]["throttle"];
 	  std::cout << "j[1] : " <<j[1]<<std::endl;
 #if 0
 	  //std::cout << "ptsx : " << ptsx << std::endl;
@@ -136,7 +138,7 @@ int main() {
 	  // The polynomial is fitted to a straight line so a polynomial with
           // order 1 is sufficient.
           // however, use order 3 to have more fit line.
-          auto coeffs = polyfit(xvals, yvals, 3);
+          auto coeffs = polyfit(xvals, yvals, 1);
 	  // The cross track error is calculated by evaluating at polynomial at x, f(x)
 	  // and subtracting y.
           //double cte = polyeval(coeffs, px) - py;
@@ -147,17 +149,40 @@ int main() {
 	  // derivative of coeffs[0] + coeffs[1] * x -> coeffs[1]
 	  double epsi = psi - atan(coeffs[1]);
 
+          // Actuator delay in milliseconds.
+          const int actuatorDelay =  100;
+
+          // Actuator delay in seconds.
+          const double delay = actuatorDelay / 1000.0;
+
+          // Initial state.
           // state in vehicle coordinates: x,y and orientation are always zero
-	  Eigen::VectorXd state(6);
-	  //state << px, py, psi, v, cte, epsi;
-	  state << 0, 0, 0, v, cte, epsi;
+          const double x0 = 0;
+          const double y0 = 0;
+          const double psi0 = 0;
+          const double cte0 = cte;
+          const double epsi0 = epsi;
+
+          // State after delay.
+          const double Lf = 2.67;
+          double x_delay = x0 + ( v * cos(psi0) * delay );
+          double y_delay = y0 + ( v * sin(psi0) * delay );
+          double psi_delay = psi0 - ( v * delta * delay / Lf );
+          double v_delay = v + a * delay;
+          double cte_delay = cte0 + ( v * sin(epsi0) * delay );
+          double epsi_delay = epsi0 - ( v * atan(coeffs[1]) * delay / Lf );
+
+          // Define the state vector.
+          Eigen::VectorXd state(6);
+          state << x_delay, y_delay, psi_delay, v_delay, cte_delay, epsi_delay;
+	  //state << 0, 0, 0, v, cte, epsi;
 	  Solution vars = mpc.Solve(state, coeffs);
 	  //auto vars = mpc.Solve(state, coeffs);
           std::cout << "after mpc solve"<< std::endl;
 
           double steer_value;
           double throttle_value;
-          int actuate_point = 2 ;
+          int actuate_point = 0 ;
           steer_value = vars.Delta.at(actuate_point);//vars[6];
           throttle_value = vars.A.at(actuate_point);
 
